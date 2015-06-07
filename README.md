@@ -22,7 +22,9 @@ Java5 中叫APT(Annotation Processing Tool)，在Java6开始，规范化为 Plug
 在最新的 ButterKnife 源码（2015.06.08）中，ButterKnife已经重构了部分方法：
 
 ButterKnife#inject -> ButterKnife#bind
+
 @InjectView -> @FindView
+
 等等，具体变化可以去看官方文档，**本文档后续代码使用最新版本代码演示**。
 
 #极简实现演示
@@ -30,21 +32,21 @@ ButterKnife#inject -> ButterKnife#bind
 ##演示代码说明
 
 1. 示例代码由 ButterKnife 简化而来，部分定义和实现有删改，只能绑定 Activity 中的 View 字段
-2. 为了避免引入Android平台，但是又需要更直观，所以mock了android的两个类，Activity 和 View
+2. 为了避免引入Android平台，但是又需要更直观，所以mock了android的两个类，[Activity](./android/app/Activity.java) 和 [View](./android/view/View.java)
 3. 为了避免使用 Pluggable Annotation Processing 过程中的jar包要求，以及波及不必要的java文件，请使用命令行运行演示，直接运行 ./run.sh 即可查看结果
 4. 保证 CLASSPATH 中含有tools.jar
 
 ##第一步（收集信息）
 
 1. 在每一个类中找到所有被 FindView 注解的字段
-2. 每一个需要绑定的字段信息都保存为一个 FieldViewBinding 对象，比如：
+2. 每一个需要绑定的字段信息都保存为一个 [FieldViewBinding](./butterknife/internal/FieldViewBinding.java) 对象，比如：
 
         @FindView(100)
         View vView1;
         得到：
         new FieldViewBinding(vView1, android.view.View, 100)
 
-3. 将字段分类，获取每一个类的“类数据集”，比如， MainActivity 对应的 “类数据集” 如下：
+3. 将字段分类，获取每一个类的“类数据集”[BindingClass](./butterknife/internal/BindingClass.java)，比如， MainActivity 对应的 “类数据集” 如下：
 
         MainActivity：
             List<FieldViewBinding> fieldViewBindings = new ArrayList<FieldViewBinding>();
@@ -53,7 +55,7 @@ ButterKnife#inject -> ButterKnife#bind
 
 ##第二步（生成 Bind 工具类源文件）
 
-为了便于在反射时容易实例化生成的类，每一个生成的类都实现了一个 ActivityBinder<T extends Activity> 接口，因此，根据 MainActivity “类数据集”生成的文件如下：
+为了便于在反射时容易实例化生成的类，每一个生成的类都实现了一个 [ActivityBinder<T extends Activity>](./butterknife/internal/ButterKnifeProcessor.java) 接口，因此，根据 [MainActivity](./sample/MainActivity) “类数据集”生成的文件如下：
 
     package sample;
 
